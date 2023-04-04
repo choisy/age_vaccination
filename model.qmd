@@ -10,39 +10,6 @@ editor_options:
 knitr::opts_chunk$set(cache = TRUE)
 ```
 
-## Packages
-
-```{r, message = FALSE}
-library(dplyr)
-library(stringr)
-```
-
-## Data
-
-```{r}
-census <- readRDS("~/OneDrive - Oxford University Clinical Research Unit/data/census VNM 2019/census2019.rds")
-```
-
-## Age pyramid
-
-Making the data:
-
-```{r}
-age_dist <- census %>% 
-  group_by(age) %>% 
-  summarise(n = sum(n)) %>% 
-  filter(age != "81 +") %>% 
-  mutate_at("age", str_remove, " tuổi") %>% 
-  mutate_at("age", as.integer) %>% 
-  arrange(age)
-```
-
-Plotting the age pyramid:
-
-```{r}
-with(age_dist, plot(age, n, type = "h"))
-```
-
 ## A simple 2-doses vaccination model
 
 ### Demographics:
