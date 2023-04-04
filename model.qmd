@@ -65,9 +65,83 @@ Example:
 protection1(t1 = 9 * 30,  # timing of the first dose (in days)
             t2 = 18 * 30, # timing of the second dose (in days)
             t3 = 5 * 365, # duration of the cohort (in days)
-            c1 = .85,     # vaccine coverage first dose
+            c1 = .85,     # vaccine coverage first dose (btwn 93% and 96%)
             c2 = .85,     # vaccine coverage second dose | first dose
             e1 = .85,     # vaccine efficiency first dose
             e2 = .95      # vaccine efficiency second dose
 )
 ```
+
+### An alternative expression of the vaccine coverage of the second dose
+
+Sometimes the vaccine coverage of the second dose is expressed as $c_2'$ with
+the total number of children expected to received the 2 doses of vaccine in the
+denominator instead of number of children having already received a first dose
+as done for $c_2$, meaning:
+
+$$
+c_2' = c_1 \times c_2
+$$
+
+Then the above equations have to be updated with the percentage of the cohort
+with one dose now reading:
+
+$$
+p_1 = [(t_2 - t_1) \times c_1 + (t_3 - t_2) \times (c_1 - c_2')] \times n
+$$
+
+Note that we necessarily have the constraint $c_2' \leq c_1$ here. The
+percentage of the cohort with two doses now reads:
+
+$$
+p_2 = (t_3 - t_2) \times c_2' \times n
+$$
+
+The cohort level of sero-protection then reads:
+
+$$
+s = p_1 \times e_1 + p_2 \times e_2
+$$
+
+We can update the `protection1()` function accordingly:
+
+```{r}
+protection1 <- function(t1, t2, t3, c1, c2, e1, e2, conditional = TRUE) {
+  if (! conditional) {
+    if (c2 > c1) stop("c2 cannot be greater than c1.")
+    c2 <- c2 / c1
+  }
+  n <- 1 / t3
+  one_dose <- ((t2 - t1) * c1 + (t3 - t2) * c1 * (1 - c2)) * n
+  two_doses <- (t3 - t2) * c1 * c2 * n
+  one_dose * e1 + two_doses * e2
+}
+```
+
+Let's compare:
+
+```{r}
+protection1(t1 = 9 * 30,  # timing of the first dose (in days)
+            t2 = 18 * 30, # timing of the second dose (in days)
+            t3 = 5 * 365, # duration of the cohort (in days)
+            c1 = .85,     # vaccine coverage first dose (btwn 93% and 96%)
+            c2 = .85,     # vaccine coverage second dose | first dose
+            e1 = .85,     # vaccine efficiency first dose
+            e2 = .95      # vaccine efficiency second dose
+)
+```
+
+and:
+
+```{r}
+protection1(t1 = 9 * 30,  # timing of the first dose (in days)
+            t2 = 18 * 30, # timing of the second dose (in days)
+            t3 = 5 * 365, # duration of the cohort (in days)
+            c1 = .85,     # vaccine coverage first dose (btwn 93% and 96%)
+            c2 = .85,     # vaccine coverage second dose | first dose
+            e1 = .85,     # vaccine efficiency first dose
+            e2 = .95,     # vaccine efficiency second dose
+            conditional = FALSE
+)
+```
+
