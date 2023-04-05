@@ -159,39 +159,38 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3 class="anchored" data-anchor-id="demographics">Demographics:</h3>
 <p>Let’s consider an age cohort from 0 to <span class="math inline">\(t_3\)</span> day-old and let’s assume that contacts within this cohort are homogeneous. Let’s assume that the exact same number of babies are born every day. In consequence, the number of children of a given age (in days) represents <span class="math inline">\(n = 1 / d\)</span> percents of the total number of children in the 0-<span class="math inline">\(t_3\)</span> day-old cohort.</p>
 </section>
-<section id="vaccination" class="level3">
-<h3 class="anchored" data-anchor-id="vaccination">Vaccination:</h3>
-<p>Let’s consider a vaccination with two doses at <span class="math inline">\(t_1\)</span> and <span class="math inline">\(t_2\)</span> and let’s call <span class="math inline">\(c_1\)</span> the vaccine coverage of the first dose and <span class="math inline">\(c_2\)</span> the vaccine coverage of the second dose (i.e.&nbsp;given the first dose). Let’s call <span class="math inline">\(e_1\)</span> and <span class="math inline">\(e_2\)</span> the vaccine efficiencies of the first and second doses respectively.</p>
-<p>The percentage of the cohort with one dose thus reads:</p>
+<section id="vaccination-with-second-dose-conditional-on-first-one" class="level3">
+<h3 class="anchored" data-anchor-id="vaccination-with-second-dose-conditional-on-first-one">Vaccination, with second dose conditional on first one</h3>
+<p>Let’s consider a vaccination with two doses at <span class="math inline">\(t_1\)</span> and <span class="math inline">\(t_2\)</span> and let’s call <span class="math inline">\(c_1\)</span> the vaccine coverage of the first dose and <span class="math inline">\(c_2\)</span> the vaccine coverage of the second dose, given the first dose. Let’s call <span class="math inline">\(e_1\)</span> and <span class="math inline">\(e_2\)</span> the vaccine efficiencies of the first and second doses respectively, with <span class="math inline">\(e_1 \leq e_2\)</span>. The percentage of the cohort with one dose only thus reads:</p>
 <p><span class="math display">\[
-p_1 = [(t_2 - t_1) \times c_1 + (t_3 - t_2) \times c_1 \times (1 - c_2)] \times n
+p_1 = [(t_2 - t_1) \times c_1 + (t_3 - t_2) \times c_1 \times (1 - c_2)] \times \frac{1}{t_3}
 \]</span></p>
 <p>And the percentage of the cohort with two doses reads:</p>
 <p><span class="math display">\[
-p_2 = (t_3 - t_2) \times c_1 \times c_2 \times n
+p_2 = (t_3 - t_2) \times c_1 \times c_2 \times \frac{1}{t_3}
 \]</span></p>
 <p>The cohort level of sero-protection then reads:</p>
 <p><span class="math display">\[
 s = p_1 \times e_1 + p_2 \times e_2
 \]</span></p>
 </section>
-<section id="an-alternative-expression-of-the-vaccine-coverage-of-the-second-dose" class="level3">
-<h3 class="anchored" data-anchor-id="an-alternative-expression-of-the-vaccine-coverage-of-the-second-dose">An alternative expression of the vaccine coverage of the second dose</h3>
+<section id="vaccination-with-second-dose-not-conditional-on-first-one" class="level3">
+<h3 class="anchored" data-anchor-id="vaccination-with-second-dose-not-conditional-on-first-one">Vaccination, with second dose not conditional on first one</h3>
 <p>Sometimes the vaccine coverage of the second dose is expressed as <span class="math inline">\(c_2'\)</span> with the total number of children expected to received the 2 doses of vaccine in the denominator instead of number of children having already received a first dose as done for <span class="math inline">\(c_2\)</span>, meaning:</p>
 <p><span class="math display">\[
 c_2' = c_1 \times c_2
 \]</span></p>
-<p>Then the above equations have to be updated with the percentage of the cohort with one dose now reading:</p>
+<p>with <span class="math inline">\(c_2' \leq c_1\)</span>. Then, the above equations have to be updated with the percentage of the cohort with one dose now reading:</p>
 <p><span class="math display">\[
-p_1 = [(t_2 - t_1) \times c_1 + (t_3 - t_2) \times (c_1 - c_2')] \times n
+p_1' = [(t_2 - t_1) \times c_1 + (t_3 - t_2) \times (c_1 - c_2')] \times \frac{1}{t_3}
 \]</span></p>
-<p>Note that we necessarily have the constraint <span class="math inline">\(c_2' \leq c_1\)</span> here. The percentage of the cohort with two doses now reads:</p>
+<p>The percentage of the cohort with two doses now reads:</p>
 <p><span class="math display">\[
-p_2 = (t_3 - t_2) \times c_2' \times n
+p_2' = (t_3 - t_2) \times c_2' \times \frac{1}{t_3}
 \]</span></p>
 <p>The cohort level of sero-protection then reads:</p>
 <p><span class="math display">\[
-s = p_1 \times e_1 + p_2 \times e_2
+s = p_1' \times e_1 + p_2' \times e_2
 \]</span></p>
 </section>
 <section id="cohort-level-of-protection" class="level3">
@@ -238,8 +237,81 @@ s = p_1 \times e_1 + p_2 \times e_2
 <pre><code>[1] 0.6754589</code></pre>
 </div>
 </div>
+</section>
+<section id="some-quick-explorations" class="level3">
+<h3 class="anchored" data-anchor-id="some-quick-explorations">Some quick explorations</h3>
+<section id="vaccine-coverage-and-sero-prevalence" class="level4">
+<h4 class="anchored" data-anchor-id="vaccine-coverage-and-sero-prevalence">Vaccine coverage and sero-prevalence</h4>
+<p>Assuming the same vaccine coverage for the two doses, we can look at the relationship between vaccine coverage and sero-prevalence:</p>
+<p><span class="math display">\[
+s = \frac{t_3 - t_1}{t_3} e_1 \times c + \frac{t_3 - t_2}{t_3} (e_2 - e_1) \times c^2
+\]</span></p>
+<p>Some utilitary functions:</p>
+<div class="cell" data-hash="model_cache/html/unnamed-chunk-4_2d0155e785a9a7f0970f4981e99eca29">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>abline2 <span class="ot">&lt;-</span> <span class="cf">function</span>(...) <span class="fu">abline</span>(..., <span class="at">col =</span> <span class="st">"lightgrey"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>lines2 <span class="ot">&lt;-</span> <span class="cf">function</span>(...) <span class="fu">lines</span>(..., <span class="at">lwd =</span> <span class="dv">3</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>plot_layout <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  opar <span class="ot">&lt;-</span> <span class="fu">par</span>(<span class="at">pty =</span> <span class="st">"s"</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="at">type =</span> <span class="st">"n"</span>, <span class="at">xlim =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">ylim =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">asp =</span> <span class="dv">1</span>, <span class="at">xaxs =</span> <span class="st">"i"</span>, <span class="at">yaxs =</span> <span class="st">"i"</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">"vaccine coverage"</span>, <span class="at">ylab =</span> <span class="st">"sero-prevalence"</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">par</span>(opar)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline2</span>(<span class="at">v =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, .<span class="dv">1</span>))</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline2</span>(<span class="at">h =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, .<span class="dv">1</span>))</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">box</span>(<span class="at">bty =</span> <span class="st">"o"</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-hash="model_cache/html/unnamed-chunk-5_1f8e24138157c60979dab2212fec5055">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>prot1 <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">t1 =</span> <span class="dv">9</span> <span class="sc">*</span> <span class="dv">30</span>,</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">t2 =</span> <span class="dv">18</span> <span class="sc">*</span> <span class="dv">30</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">t3 =</span> <span class="dv">5</span> <span class="sc">*</span> <span class="dv">365</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                  c,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">e1 =</span> .<span class="dv">85</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">e2 =</span> .<span class="dv">95</span>) {</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  (t3 <span class="sc">-</span> t1) <span class="sc">*</span> e1 <span class="sc">*</span> c <span class="sc">/</span> t3 <span class="sc">+</span> (t3 <span class="sc">-</span> t2) <span class="sc">*</span> (e2 <span class="sc">-</span> e1) <span class="sc">*</span> c<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> t3</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># vaccine coverage values (x axis):</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>cov_val <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">le =</span> <span class="dv">500</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co"># layout of the plot:</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_layout</span>()</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co"># sero-prevalences:</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="fu">lines2</span>(cov_val, <span class="fu">prot1</span>(<span class="at">c =</span> cov_val, <span class="at">e2 =</span> .<span class="dv">95</span>), <span class="at">col =</span> <span class="dv">4</span>)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="fu">lines2</span>(cov_val, <span class="fu">prot1</span>(<span class="at">c =</span> cov_val, <span class="at">e2 =</span> .<span class="dv">85</span>), <span class="at">col =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="model_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>With the other formulation (second dose not conditional on first dose):</p>
+<p><span class="math display">\[
+s = \left[\frac{t_2 - t_1}{t_3} e_1 + \frac{t_3 - t_2}{t_3} e_2\right] c
+\]</span></p>
+<div class="cell" data-hash="model_cache/html/unnamed-chunk-6_12baa150ad0b4cf32d813e1459753937">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>prot2 <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">t1 =</span> <span class="dv">9</span> <span class="sc">*</span> <span class="dv">30</span>,</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">t2 =</span> <span class="dv">18</span> <span class="sc">*</span> <span class="dv">30</span>,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">t3 =</span> <span class="dv">5</span> <span class="sc">*</span> <span class="dv">365</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>                  c,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">e1 =</span> .<span class="dv">85</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">e2 =</span> .<span class="dv">95</span>) {</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  ((t2 <span class="sc">-</span> t1) <span class="sc">*</span> e1 <span class="sc">+</span> (t3 <span class="sc">-</span> t2) <span class="sc">*</span> e2) <span class="sc">*</span> c <span class="sc">/</span> t3</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># layout of the plot:</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_layout</span>()</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># sero-prevalences:</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="fu">lines2</span>(cov_val, <span class="fu">prot2</span>(<span class="at">c =</span> cov_val, <span class="at">e2 =</span> .<span class="dv">95</span>), <span class="at">col =</span> <span class="dv">4</span>)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="fu">lines2</span>(cov_val, <span class="fu">prot2</span>(<span class="at">c =</span> cov_val, <span class="at">e2 =</span> .<span class="dv">85</span>), <span class="at">col =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="model_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
 
 
+</section>
 </section>
 </section>
 

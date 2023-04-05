@@ -20,23 +20,22 @@ number of babies are born every day. In consequence, the number of children of
 a given age (in days) represents $n = 1 / d$ percents of the total number of
 children in the 0-$t_3$ day-old cohort.
 
-### Vaccination:
+### Vaccination, with second dose conditional on first one
 
 Let's consider a vaccination with two doses at $t_1$ and $t_2$ and let's call
 $c_1$ the vaccine coverage of the first dose and $c_2$ the vaccine coverage of
-the second dose (i.e. given the first dose). Let's call $e_1$ and $e_2$ the
-vaccine efficiencies of the first and second doses respectively.
-
-The percentage of the cohort with one dose thus reads:
+the second dose, given the first dose. Let's call $e_1$ and $e_2$ the vaccine
+efficiencies of the first and second doses respectively, with $e_1 \leq e_2$.
+The percentage of the cohort with one dose only thus reads:
 
 $$
-p_1 = [(t_2 - t_1) \times c_1 + (t_3 - t_2) \times c_1 \times (1 - c_2)] \times n
+p_1 = [(t_2 - t_1) \times c_1 + (t_3 - t_2) \times c_1 \times (1 - c_2)] \times \frac{1}{t_3}
 $$
 
 And the percentage of the cohort with two doses reads:
 
 $$
-p_2 = (t_3 - t_2) \times c_1 \times c_2 \times n
+p_2 = (t_3 - t_2) \times c_1 \times c_2 \times \frac{1}{t_3}
 $$
 
 The cohort level of sero-protection then reads:
@@ -45,7 +44,7 @@ $$
 s = p_1 \times e_1 + p_2 \times e_2
 $$
 
-### An alternative expression of the vaccine coverage of the second dose
+### Vaccination, with second dose not conditional on first one
 
 Sometimes the vaccine coverage of the second dose is expressed as $c_2'$ with
 the total number of children expected to received the 2 doses of vaccine in the
@@ -56,24 +55,23 @@ $$
 c_2' = c_1 \times c_2
 $$
 
-Then the above equations have to be updated with the percentage of the cohort
-with one dose now reading:
+with $c_2' \leq c_1$. Then, the above equations have to be updated with the
+percentage of the cohort with one dose now reading:
 
 $$
-p_1 = [(t_2 - t_1) \times c_1 + (t_3 - t_2) \times (c_1 - c_2')] \times n
+p_1' = [(t_2 - t_1) \times c_1 + (t_3 - t_2) \times (c_1 - c_2')] \times \frac{1}{t_3}
 $$
 
-Note that we necessarily have the constraint $c_2' \leq c_1$ here. The
-percentage of the cohort with two doses now reads:
+The percentage of the cohort with two doses now reads:
 
 $$
-p_2 = (t_3 - t_2) \times c_2' \times n
+p_2' = (t_3 - t_2) \times c_2' \times \frac{1}{t_3}
 $$
 
 The cohort level of sero-protection then reads:
 
 $$
-s = p_1 \times e_1 + p_2 \times e_2
+s = p_1' \times e_1 + p_2' \times e_2
 $$
 
 ### Cohort level of protection
@@ -122,3 +120,79 @@ protection1(t1 = 9 * 30,  # timing of the first dose (in days)
 )
 ```
 
+### Some quick explorations
+
+#### Vaccine coverage and sero-prevalence
+
+Assuming the same vaccine coverage for the two doses, we can look at the
+relationship between vaccine coverage and sero-prevalence:
+
+$$
+s = \frac{t_3 - t_1}{t_3} e_1 \times c + \frac{t_3 - t_2}{t_3} (e_2 - e_1) \times c^2
+$$
+
+Some utilitary functions:
+
+```{r}
+abline2 <- function(...) abline(..., col = "lightgrey")
+lines2 <- function(...) lines(..., lwd = 3)
+
+plot_layout <- function() {
+  opar <- par(pty = "s")
+  plot(0, 0, type = "n", xlim = 0:1, ylim = 0:1, asp = 1, xaxs = "i", yaxs = "i",
+       xlab = "vaccine coverage", ylab = "sero-prevalence")
+  par(opar)
+  abline2(v = seq(0, 1, .1))
+  abline2(h = seq(0, 1, .1))
+  abline(0, 1)
+  box(bty = "o")
+}
+```
+
+
+```{r}
+prot1 <- function(t1 = 9 * 30,
+                  t2 = 18 * 30,
+                  t3 = 5 * 365,
+                  c,
+                  e1 = .85,
+                  e2 = .95) {
+  (t3 - t1) * e1 * c / t3 + (t3 - t2) * (e2 - e1) * c^2 / t3
+}
+
+# vaccine coverage values (x axis):
+cov_val <- seq(0, 1, le = 500)
+
+# layout of the plot:
+plot_layout()
+
+# sero-prevalences:
+lines2(cov_val, prot1(c = cov_val, e2 = .95), col = 4)
+lines2(cov_val, prot1(c = cov_val, e2 = .85), col = 3)
+```
+
+With the other formulation (second dose not conditional on first dose):
+
+$$
+s = \left[\frac{t_2 - t_1}{t_3} e_1 + \frac{t_3 - t_2}{t_3} e_2\right] c
+$$
+
+```{r}
+prot2 <- function(t1 = 9 * 30,
+                  t2 = 18 * 30,
+                  t3 = 5 * 365,
+                  c,
+                  e1 = .85,
+                  e2 = .95) {
+  ((t2 - t1) * e1 + (t3 - t2) * e2) * c / t3
+}
+
+# layout of the plot:
+plot_layout()
+
+# sero-prevalences:
+lines2(cov_val, prot2(c = cov_val, e2 = .95), col = 4)
+lines2(cov_val, prot2(c = cov_val, e2 = .85), col = 3)
+```
+
+Very similar.
