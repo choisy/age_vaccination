@@ -45,33 +45,6 @@ $$
 s = p_1 \times e_1 + p_2 \times e_2
 $$
 
-### Cohort level of protection
-
-This functions uses the above equations to compute the population level of
-sero-protection:
-
-```{r}
-protection1 <- function(t1, t2, t3, c1, c2, e1, e2) {
-  n <- 1 / t3
-  one_dose <- ((t2 - t1) * c1 + (t3 - t2) * c1 * (1 - c2)) * n
-  two_doses <- (t3 - t2) * c1 * c2 * n
-  one_dose * e1 + two_doses * e2
-}
-```
-
-Example:
-
-```{r}
-protection1(t1 = 9 * 30,  # timing of the first dose (in days)
-            t2 = 18 * 30, # timing of the second dose (in days)
-            t3 = 5 * 365, # duration of the cohort (in days)
-            c1 = .85,     # vaccine coverage first dose (btwn 93% and 96%)
-            c2 = .85,     # vaccine coverage second dose | first dose
-            e1 = .85,     # vaccine efficiency first dose
-            e2 = .95      # vaccine efficiency second dose
-)
-```
-
 ### An alternative expression of the vaccine coverage of the second dose
 
 Sometimes the vaccine coverage of the second dose is expressed as $c_2'$ with
@@ -103,7 +76,10 @@ $$
 s = p_1 \times e_1 + p_2 \times e_2
 $$
 
-We can update the `protection1()` function accordingly:
+### Cohort level of protection
+
+This functions uses the above equations to compute the population level of
+sero-protection:
 
 ```{r}
 protection1 <- function(t1, t2, t3, c1, c2, e1, e2, conditional = TRUE) {
@@ -118,7 +94,8 @@ protection1 <- function(t1, t2, t3, c1, c2, e1, e2, conditional = TRUE) {
 }
 ```
 
-Let's compare:
+Let's see an example of this function use with the two expressions of the
+coverage of the second dose:
 
 ```{r}
 protection1(t1 = 9 * 30,  # timing of the first dose (in days)

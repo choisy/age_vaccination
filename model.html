@@ -146,32 +146,6 @@ p_2 = (t_3 - t_2) \times c_1 \times c_2 \times n
 s = p_1 \times e_1 + p_2 \times e_2
 \]</span></p>
 </section>
-<section id="cohort-level-of-protection" class="level3">
-<h3 class="anchored" data-anchor-id="cohort-level-of-protection">Cohort level of protection</h3>
-<p>This functions uses the above equations to compute the population level of sero-protection:</p>
-<div class="cell" data-hash="model_cache/html/unnamed-chunk-1_bba7af2925c1e4224998c1ac33cb1d52">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>protection1 <span class="ot">&lt;-</span> <span class="cf">function</span>(t1, t2, t3, c1, c2, e1, e2) {</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> t3</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  one_dose <span class="ot">&lt;-</span> ((t2 <span class="sc">-</span> t1) <span class="sc">*</span> c1 <span class="sc">+</span> (t3 <span class="sc">-</span> t2) <span class="sc">*</span> c1 <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> c2)) <span class="sc">*</span> n</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  two_doses <span class="ot">&lt;-</span> (t3 <span class="sc">-</span> t2) <span class="sc">*</span> c1 <span class="sc">*</span> c2 <span class="sc">*</span> n</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  one_dose <span class="sc">*</span> e1 <span class="sc">+</span> two_doses <span class="sc">*</span> e2</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>Example:</p>
-<div class="cell" data-hash="model_cache/html/unnamed-chunk-2_91e8bfcd6e080e9cb40e68f9633421ce">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">protection1</span>(<span class="at">t1 =</span> <span class="dv">9</span> <span class="sc">*</span> <span class="dv">30</span>,  <span class="co"># timing of the first dose (in days)</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">t2 =</span> <span class="dv">18</span> <span class="sc">*</span> <span class="dv">30</span>, <span class="co"># timing of the second dose (in days)</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">t3 =</span> <span class="dv">5</span> <span class="sc">*</span> <span class="dv">365</span>, <span class="co"># duration of the cohort (in days)</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">c1 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine coverage first dose (btwn 93% and 96%)</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">c2 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine coverage second dose | first dose</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">e1 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine efficiency first dose</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">e2 =</span> .<span class="dv">95</span>      <span class="co"># vaccine efficiency second dose</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.6664815</code></pre>
-</div>
-</div>
-</section>
 <section id="an-alternative-expression-of-the-vaccine-coverage-of-the-second-dose" class="level3">
 <h3 class="anchored" data-anchor-id="an-alternative-expression-of-the-vaccine-coverage-of-the-second-dose">An alternative expression of the vaccine coverage of the second dose</h3>
 <p>Sometimes the vaccine coverage of the second dose is expressed as <span class="math inline">\(c_2'\)</span> with the total number of children expected to received the 2 doses of vaccine in the denominator instead of number of children having already received a first dose as done for <span class="math inline">\(c_2\)</span>, meaning:</p>
@@ -190,44 +164,47 @@ p_2 = (t_3 - t_2) \times c_2' \times n
 <p><span class="math display">\[
 s = p_1 \times e_1 + p_2 \times e_2
 \]</span></p>
-<p>We can update the <code>protection1()</code> function accordingly:</p>
-<div class="cell" data-hash="model_cache/html/unnamed-chunk-3_fed45a5d49ad38c4c1a5721de186efca">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>protection1 <span class="ot">&lt;-</span> <span class="cf">function</span>(t1, t2, t3, c1, c2, e1, e2, <span class="at">conditional =</span> <span class="cn">TRUE</span>) {</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span> conditional) {</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (c2 <span class="sc">&gt;</span> c1) <span class="fu">stop</span>(<span class="st">"c2 cannot be greater than c1."</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    c2 <span class="ot">&lt;-</span> c2 <span class="sc">/</span> c1</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> t3</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  one_dose <span class="ot">&lt;-</span> ((t2 <span class="sc">-</span> t1) <span class="sc">*</span> c1 <span class="sc">+</span> (t3 <span class="sc">-</span> t2) <span class="sc">*</span> c1 <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> c2)) <span class="sc">*</span> n</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  two_doses <span class="ot">&lt;-</span> (t3 <span class="sc">-</span> t2) <span class="sc">*</span> c1 <span class="sc">*</span> c2 <span class="sc">*</span> n</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  one_dose <span class="sc">*</span> e1 <span class="sc">+</span> two_doses <span class="sc">*</span> e2</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="cohort-level-of-protection" class="level3">
+<h3 class="anchored" data-anchor-id="cohort-level-of-protection">Cohort level of protection</h3>
+<p>This functions uses the above equations to compute the population level of sero-protection:</p>
+<div class="cell" data-hash="model_cache/html/unnamed-chunk-1_5980e16dcc588505a7b326d15ca6bae1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>protection1 <span class="ot">&lt;-</span> <span class="cf">function</span>(t1, t2, t3, c1, c2, e1, e2, <span class="at">conditional =</span> <span class="cn">TRUE</span>) {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span> conditional) {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (c2 <span class="sc">&gt;</span> c1) <span class="fu">stop</span>(<span class="st">"c2 cannot be greater than c1."</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    c2 <span class="ot">&lt;-</span> c2 <span class="sc">/</span> c1</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> t3</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  one_dose <span class="ot">&lt;-</span> ((t2 <span class="sc">-</span> t1) <span class="sc">*</span> c1 <span class="sc">+</span> (t3 <span class="sc">-</span> t2) <span class="sc">*</span> c1 <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> c2)) <span class="sc">*</span> n</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  two_doses <span class="ot">&lt;-</span> (t3 <span class="sc">-</span> t2) <span class="sc">*</span> c1 <span class="sc">*</span> c2 <span class="sc">*</span> n</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  one_dose <span class="sc">*</span> e1 <span class="sc">+</span> two_doses <span class="sc">*</span> e2</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Let’s compare:</p>
-<div class="cell" data-hash="model_cache/html/unnamed-chunk-4_f41b04fa6d22e60bbd6f6cc64c6482e7">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">protection1</span>(<span class="at">t1 =</span> <span class="dv">9</span> <span class="sc">*</span> <span class="dv">30</span>,  <span class="co"># timing of the first dose (in days)</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">t2 =</span> <span class="dv">18</span> <span class="sc">*</span> <span class="dv">30</span>, <span class="co"># timing of the second dose (in days)</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">t3 =</span> <span class="dv">5</span> <span class="sc">*</span> <span class="dv">365</span>, <span class="co"># duration of the cohort (in days)</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">c1 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine coverage first dose (btwn 93% and 96%)</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">c2 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine coverage second dose | first dose</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">e1 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine efficiency first dose</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">e2 =</span> .<span class="dv">95</span>      <span class="co"># vaccine efficiency second dose</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Let’s see an example of this function use with the two expressions of the coverage of the second dose:</p>
+<div class="cell" data-hash="model_cache/html/unnamed-chunk-2_91e8bfcd6e080e9cb40e68f9633421ce">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">protection1</span>(<span class="at">t1 =</span> <span class="dv">9</span> <span class="sc">*</span> <span class="dv">30</span>,  <span class="co"># timing of the first dose (in days)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">t2 =</span> <span class="dv">18</span> <span class="sc">*</span> <span class="dv">30</span>, <span class="co"># timing of the second dose (in days)</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">t3 =</span> <span class="dv">5</span> <span class="sc">*</span> <span class="dv">365</span>, <span class="co"># duration of the cohort (in days)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">c1 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine coverage first dose (btwn 93% and 96%)</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">c2 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine coverage second dose | first dose</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">e1 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine efficiency first dose</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">e2 =</span> .<span class="dv">95</span>      <span class="co"># vaccine efficiency second dose</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.6664815</code></pre>
 </div>
 </div>
 <p>and:</p>
-<div class="cell" data-hash="model_cache/html/unnamed-chunk-5_b092fb9dead5f0cbf5903ad4a891d41d">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">protection1</span>(<span class="at">t1 =</span> <span class="dv">9</span> <span class="sc">*</span> <span class="dv">30</span>,  <span class="co"># timing of the first dose (in days)</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">t2 =</span> <span class="dv">18</span> <span class="sc">*</span> <span class="dv">30</span>, <span class="co"># timing of the second dose (in days)</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">t3 =</span> <span class="dv">5</span> <span class="sc">*</span> <span class="dv">365</span>, <span class="co"># duration of the cohort (in days)</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">c1 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine coverage first dose (btwn 93% and 96%)</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">c2 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine coverage second dose | first dose</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">e1 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine efficiency first dose</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">e2 =</span> .<span class="dv">95</span>,     <span class="co"># vaccine efficiency second dose</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">conditional =</span> <span class="cn">FALSE</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="model_cache/html/unnamed-chunk-3_ece699df024cbd2bd6b534a5ecba9d2a">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">protection1</span>(<span class="at">t1 =</span> <span class="dv">9</span> <span class="sc">*</span> <span class="dv">30</span>,  <span class="co"># timing of the first dose (in days)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">t2 =</span> <span class="dv">18</span> <span class="sc">*</span> <span class="dv">30</span>, <span class="co"># timing of the second dose (in days)</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">t3 =</span> <span class="dv">5</span> <span class="sc">*</span> <span class="dv">365</span>, <span class="co"># duration of the cohort (in days)</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">c1 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine coverage first dose (btwn 93% and 96%)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">c2 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine coverage second dose | first dose</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">e1 =</span> .<span class="dv">85</span>,     <span class="co"># vaccine efficiency first dose</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">e2 =</span> .<span class="dv">95</span>,     <span class="co"># vaccine efficiency second dose</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">conditional =</span> <span class="cn">FALSE</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.6754589</code></pre>
 </div>
