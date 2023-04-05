@@ -99,11 +99,10 @@ coverage of the second dose:
 protection1(t1 = 9 * 30,  # timing of the first dose (in days)
             t2 = 18 * 30, # timing of the second dose (in days)
             t3 = 5 * 365, # duration of the cohort (in days)
-            c1 = .85,     # vaccine coverage first dose (btwn 93% and 96%)
+            c1 = .85,     # vaccine coverage first dose
             c2 = .85,     # vaccine coverage second dose | first dose
             e1 = .85,     # vaccine efficiency first dose
-            e2 = .95      # vaccine efficiency second dose
-)
+            e2 = .95)     # vaccine efficiency second dose
 ```
 
 and:
@@ -112,12 +111,11 @@ and:
 protection1(t1 = 9 * 30,  # timing of the first dose (in days)
             t2 = 18 * 30, # timing of the second dose (in days)
             t3 = 5 * 365, # duration of the cohort (in days)
-            c1 = .85,     # vaccine coverage first dose (btwn 93% and 96%)
+            c1 = .85,     # vaccine coverage first dose
             c2 = .85,     # vaccine coverage second dose | first dose
             e1 = .85,     # vaccine efficiency first dose
             e2 = .95,     # vaccine efficiency second dose
-            conditional = FALSE
-)
+            conditional = FALSE)
 ```
 
 ### Some quick explorations
@@ -137,15 +135,19 @@ Some utilitary functions:
 abline2 <- function(...) abline(..., col = "lightgrey")
 lines2 <- function(...) lines(..., lwd = 3)
 
-plot_layout <- function() {
+plot_square1 <- function(xlab = "vaccine coverage", ylab = "sero-prevalence") {
   opar <- par(pty = "s")
   plot(0, 0, type = "n", xlim = 0:1, ylim = 0:1, asp = 1, xaxs = "i", yaxs = "i",
-       xlab = "vaccine coverage", ylab = "sero-prevalence")
+       xlab = xlab, ylab = ylab)
   par(opar)
   abline2(v = seq(0, 1, .1))
   abline2(h = seq(0, 1, .1))
-  abline(0, 1)
   box(bty = "o")
+}
+
+plot_layout <- function() {
+  plot_square1()
+  abline(0, 1)
 }
 ```
 
@@ -196,3 +198,34 @@ lines2(cov_val, prot2(c = cov_val, e2 = .85), col = 3)
 ```
 
 Very similar.
+
+#### When first dose is missing for a proportion of the population
+
+Here we assume that the first dose is missing for a proportion $p$ of the
+population but, also, that, for those missing the first dose, the timing of the
+second dose $t_2'$ is earlier than $t_2$. The sero-prevalence then reads:
+
+$$
+s = (1 - p)\left[\frac{t_2 - t_1}{t_3} c_1 + \frac{t_3 - t_2}{t_3} (c_1 - c_2')\right] e_1 + \frac{(1 - p)(t_3 - t_2) + p\times(t_3 - t_2')}{t_3} c_2' e_2
+$$
+Let's illustrate it:
+
+```{r}
+sero_pr_publ_priv <- function(t1  = 9 * 30,  
+                              t2  = 18 * 30,
+                              t2p = 12 * 30,
+                              t3  = 5 * 365, 
+                              c1  = .85,     
+                              c2  = .85,     
+                              e1  = .85,
+                              e2  = .95,
+                              p) {
+  ((1 - p) * ((t2 - t1) * c1 + (t3 - t2) * (c1 - c2)) * e1 + ((1 - p) * (t3 - t2) + p * (t3 - t2p)) * c2 * e2) / t3
+}
+
+p_private <- seq(0, 1, le = 500)
+plot_square1(xlab = "proportion vaccinated in private clinics",
+             ylab = "sero-prevalence")
+lines2(p_private, sero_pr_publ_priv(p = p_private), col = 4)
+```
+
