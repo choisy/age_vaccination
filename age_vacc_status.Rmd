@@ -1,0 +1,75 @@
+---
+title: "Vaccination status among measles cases"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Let's make the following assumptions:
+
+* the age distribution for the children of age considered in this study is flat;
+* the exposure to measles is independent of age;
+* the susceptibility is determined by vaccination only;
+* the prevalence of chronic disease is independent of age;
+* the vaccine efficacies are independent of the fact that children have chronic
+disease of not;
+
+A child can be infected either because s/he's not vaccinated or because s/he's
+vaccinated and the vaccine does not work:
+
+$$
+M = [(1 - p) + (1 - e) p] N
+$$
+
+where $M$ is the total number of measles cases, $p$ is the vaccine coverage,
+$e$ is the vaccine efficacy and $N$ is the total number of children in the
+population. From this equation, we can derive the proportion of children that
+are vaccined amond the measles cases:
+
+$$
+P = \frac{(1 - e) p}{(1 - p) + (1 - e) p}
+$$
+
+Let's now consider the proportions of children that are vaccinated in the 4
+categories of children as below:
+
+```{r, eval = FALSE}
+             | 9 < age < 18 | 18 < age
+------------ | -------------|---------
+non-chronic  |      P1      |    P2
+chronic dis. |      P3      |    P4
+```
+
+Then we have 4 equations with 4 unknown:
+
+$$
+P_1 = \frac{(1 - e_1) p_1}{(1 - p_1) + (1 - e_1) p_1}
+$$
+$$
+P_2 = \frac{(1 - e_2) p_1}{(1 - p_1) + (1 - e_2) p_1}
+$$
+$$
+P_3 = \frac{(1 - e_1) p_2}{(1 - p_2) + (1 - e_1) p_2}
+$$
+$$
+P_4 = \frac{(1 - e_2) p_2}{(1 - p_2) + (1 - e_2) p_2}
+$$
+
+We can estimate the parameters $p_1$, $p_2$, $e_1$, $e_2$ by maximum likelihood,
+using a binomial distribution of errors. 
+
+```{r}
+mLL <- function(p1, p2, e1, e2, N1, N2, N3, N4, V1, V2, V3, V4) {
+  - dbinom(V1, N1, ((1 - e1) * p1) / ((1 - p1) + (1 - e1) * p1), TRUE)
+  - dbinom(V2, N2, ((1 - e2) * p1) / ((1 - p1) + (1 - e2) * p1), TRUE)
+  - dbinom(V3, N3, ((1 - e1) * p2) / ((1 - p2) + (1 - e1) * p2), TRUE)
+  - dbinom(V4, N4, ((1 - e2) * p2) / ((1 - p2) + (1 - e2) * p2), TRUE)
+}
+```
+
+where N1, N2, N3, N4, V1, V2, V3, V4 should be assigned values from the data and
+p1, p2, e1, e2 should be estimated by maximum likelihood.
