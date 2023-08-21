@@ -135,6 +135,20 @@ efficiency after the first dose (95%) would be higher than after the second dose
 (82%). Let's see the confidence intervals:
 
 ```{r}
-confint(out)
+inverse_logit(confint(out, method = "quad"))
 ```
 
+Let's try now by assuming that the vaccine efficacy is the same 
+
+$$
+P_1 = \frac{(1 - e_1) p_1}{(1 - p_1) + (1 - e_1) p_1}
+$$
+$$
+P_2 = \frac{(1 - e_1) p_1}{(1 - p_1) + (1 - e_1) p_1}
+$$
+$$
+P_3 = \frac{(1 - e_2) p_2}{(1 - p_2) + (1 - e_2) p_2}
+$$
+$$
+P_4 = \frac{(1 - e_2) p_2}{(1 - p_2) + (1 - e_2) p_2}
+$$

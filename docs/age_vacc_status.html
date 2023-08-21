@@ -446,39 +446,22 @@ with chronic diseases would be around 44% in comparison. It also
 strangely suggest that the vaccine efficiency after the first dose (95%)
 would be higher than after the second dose (82%). Let’s see the
 confidence intervals:</p>
-<pre class="r"><code>confint(out)</code></pre>
-<pre><code>## Warning in proffun(fitted, ...): stepsize effectively zero/flat profile (p1)
-
-## Warning in proffun(fitted, ...): stepsize effectively zero/flat profile (p1)</code></pre>
-<pre><code>## Warning in mle2(minuslogl = function (p1, p2, e1, e2) : convergence failure:
-## code=1 (iteration limit &#39;maxit&#39; reached)</code></pre>
-<pre><code>## Warning in proffun(fitted, ...): stepsize effectively zero/flat profile (p2)</code></pre>
-<pre><code>## Warning in mle2(minuslogl = function (p1, p2, e1, e2) : convergence failure:
-## code=1 (iteration limit &#39;maxit&#39; reached)</code></pre>
-<pre><code>## Warning in proffun(fitted, ...): stepsize effectively zero/flat profile (e1)</code></pre>
-<pre><code>## Warning in proffun(fitted, ...): stepsize effectively zero/flat profile (e2)
-
-## Warning in proffun(fitted, ...): stepsize effectively zero/flat profile (e2)</code></pre>
-<pre><code>## Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):
-## collapsing to unique &#39;x&#39; values</code></pre>
-<pre><code>## Warning in .local(object, parm, level, ...): non-monotonic profile (p2):
-## reverting from spline to linear approximation (consider running &#39;profile&#39; with
-## manually reduced std.err)</code></pre>
-<pre><code>## Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):
-## collapsing to unique &#39;x&#39; values</code></pre>
-<pre><code>## Warning in .local(object, parm, level, ...): non-monotonic profile (e1):
-## reverting from spline to linear approximation (consider running &#39;profile&#39; with
-## manually reduced std.err)</code></pre>
-<pre><code>## Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):
-## collapsing to unique &#39;x&#39; values
-
-## Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):
-## collapsing to unique &#39;x&#39; values</code></pre>
-<pre><code>##         2.5 % 97.5 %
-## p1         NA     NA
-## p2 -2.4514058     NA
-## e1  0.5413379     NA
-## e2         NA     NA</code></pre>
+<pre class="r"><code>inverse_logit(confint(out, method = &quot;quad&quot;))</code></pre>
+<pre><code>##        2.5 %    97.5 %
+## p1 0.6954860 0.7614409
+## p2 0.3508146 0.5299372
+## e1 0.9391934 0.9617457
+## e2 0.7859514 0.8460866</code></pre>
+<p>Let’s try now by assuming that the vaccine efficacy is the same</p>
+<p><span class="math display">\[
+P_1 = \frac{(1 - e_1) p_1}{(1 - p_1) + (1 - e_1) p_1}
+\]</span> <span class="math display">\[
+P_2 = \frac{(1 - e_1) p_1}{(1 - p_1) + (1 - e_1) p_1}
+\]</span> <span class="math display">\[
+P_3 = \frac{(1 - e_2) p_2}{(1 - p_2) + (1 - e_2) p_2}
+\]</span> <span class="math display">\[
+P_4 = \frac{(1 - e_2) p_2}{(1 - p_2) + (1 - e_2) p_2}
+\]</span></p>
 
 
 
