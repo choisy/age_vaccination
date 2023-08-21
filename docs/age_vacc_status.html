@@ -452,15 +452,18 @@ confidence intervals:</p>
 ## p2 0.3508146 0.5299372
 ## e1 0.9391934 0.9617457
 ## e2 0.7859514 0.8460866</code></pre>
-<p>Let’s try now by assuming that the vaccine efficacy is the same</p>
+<p>Let’s try an alternative parameterisation that would assume vaccine
+coverage changing with time:</p>
 <p><span class="math display">\[
 P_1 = \frac{(1 - e_1) p_1}{(1 - p_1) + (1 - e_1) p_1}
 \]</span> <span class="math display">\[
-P_2 = \frac{(1 - e_1) p_1}{(1 - p_1) + (1 - e_1) p_1}
+P_2 = \frac{(1 - e_1) \varepsilon p_1}{(1 - \varepsilon p_1) + (1 -
+e_1)  \varepsilon p_1}
 \]</span> <span class="math display">\[
 P_3 = \frac{(1 - e_2) p_2}{(1 - p_2) + (1 - e_2) p_2}
 \]</span> <span class="math display">\[
-P_4 = \frac{(1 - e_2) p_2}{(1 - p_2) + (1 - e_2) p_2}
+P_4 = \frac{(1 - e_2) \varepsilon p_2}{(1 - \varepsilon p_2) + (1 - e_2)
+\varepsilon p_2}
 \]</span></p>
 
 
