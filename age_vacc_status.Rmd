@@ -39,7 +39,7 @@ categories of children as below:
 
 ```{r, eval = FALSE}
              | 9 < age < 18 | 18 < age
------------- | -------------|---------
+-------------|--------------|---------
 non-chronic  |      P1      |    P2
 chronic dis. |      P3      |    P4
 ```
@@ -59,17 +59,82 @@ $$
 P_4 = \frac{(1 - e_2) p_2}{(1 - p_2) + (1 - e_2) p_2}
 $$
 
-We can estimate the parameters $p_1$, $p_2$, $e_1$, $e_2$ by maximum likelihood,
-using a binomial distribution of errors. 
+Where $p_1$ and $p_2$ are the vaccine coverages of children without and with
+chronic disease respectively and $e_1$ and $e_2$ are the vaccine efficiencies
+after the first and second doses respectively. We can estimate the parameters
+$p_1$, $p_2$, $e_1$, $e_2$ by maximum likelihood, using a binomial distribution
+of errors. Let's look at the implementation in R with the package `bbmle`:
 
 ```{r}
-mLL <- function(p1, p2, e1, e2, N1, N2, N3, N4, V1, V2, V3, V4) {
-  - dbinom(V1, N1, ((1 - e1) * p1) / ((1 - p1) + (1 - e1) * p1), TRUE)
-  - dbinom(V2, N2, ((1 - e2) * p1) / ((1 - p1) + (1 - e2) * p1), TRUE)
-  - dbinom(V3, N3, ((1 - e1) * p2) / ((1 - p2) + (1 - e1) * p2), TRUE)
-  - dbinom(V4, N4, ((1 - e2) * p2) / ((1 - p2) + (1 - e2) * p2), TRUE)
+library(bbmle)
+```
+
+First we need 2 functions to transform the parameter values in order to order
+to constraint the parameters between 0 and 1. The first function is the logit
+function:
+
+```{r}
+logit <- function(x) {
+  log(x / (1 - x))
 }
 ```
 
-where N1, N2, N3, N4, V1, V2, V3, V4 should be assigned values from the data and
-p1, p2, e1, e2 should be estimated by maximum likelihood.
+And the second function is the inverse logit function:
+
+```{r}
+inverse_logit <- function(x) {
+  exp(x)/ (1 + exp(x))
+}
+```
+
+The we need a function that computes the minus log-likelihood as a function of
+the parameters values and for some given values of the data V1, V2, V3, V4 (the
+numerators of P1, P2, P3 and P4 respectively), and N1, N2, N3 and N4 (the
+denominators of P1, P2, P3 and P4 respectively):
+
+```{r}
+mLL <- function(p1, p2, e1, e2) {
+  p1 <- inverse_logit(p1)
+  p2 <- inverse_logit(p2)
+  e1 <- inverse_logit(e1)
+  e2 <- inverse_logit(e2)
+  - sum(dbinom(c(V1, V2, V3, V4), c(N1, N2, N3, N4),
+               c(((1 - e1) * p1) / ((1 - p1) + (1 - e1) * p1),
+                 ((1 - e2) * p1) / ((1 - p1) + (1 - e2) * p1),
+                 ((1 - e1) * p2) / ((1 - p2) + (1 - e1) * p2),
+                 ((1 - e2) * p2) / ((1 - p2) + (1 - e2) * p2)), TRUE))
+}
+```
+
+From here, let's define the function that puts initial values of the parameters
+and data together and does the maximum likelihood estimation:
+
+```{r}
+mlestimation <- function(p1, p2, e1, e2, N1, N2, N3, N4, V1, V2, V3, V4, ...) {
+  mle2(mLL, as.list(logit(c(p1 = p1, p2 = p2, e1 = e1, e2 = e2))),
+       data = list(N1 = N1, N2 = N2, N3 = N3, N4 = N4, V1 = V1, V2 = V2, V3 = V3, V4 = V4), ...)
+}
+```
+
+Let's try it:
+
+```{r}
+out <- mlestimation(.5, .5, .9, .9, 526, 356, 119, 126, 57, 121, 8, 12)
+```
+
+Which gives the following estimates:
+
+```{r}
+inverse_logit(coef(out))
+```
+
+Suggesting that the vaccine coverage for children without chronic diseases would
+be around 73% and that the vaccine coverage of children with chronic diseases
+would be around 44% in comparison. It also strangely suggest that the vaccine
+efficiency after the first dose (95%) would be higher than after the second dose
+(82%). Let's see the confidence intervals:
+
+```{r}
+confint(out)
+```
+

@@ -380,7 +380,7 @@ P = \frac{(1 - e) p}{(1 - p) + (1 - e) p}
 <p>Let’s now consider the proportions of children that are vaccinated in
 the 4 categories of children as below:</p>
 <pre class="r"><code>             | 9 &lt; age &lt; 18 | 18 &lt; age
------------- | -------------|---------
+-------------|--------------|---------
 non-chronic  |      P1      |    P2
 chronic dis. |      P3      |    P4</code></pre>
 <p>Then we have 4 equations with 4 unknown:</p>
@@ -393,58 +393,92 @@ P_3 = \frac{(1 - e_1) p_2}{(1 - p_2) + (1 - e_1) p_2}
 \]</span> <span class="math display">\[
 P_4 = \frac{(1 - e_2) p_2}{(1 - p_2) + (1 - e_2) p_2}
 \]</span></p>
-<p>then, the proportion of vaccinated among measles cases is expected to
-be</p>
-<p><span class="math display">\[
-\frac{1 - e}{1 - p}p
-\]</span></p>
-<p>where <span class="math inline">\(p\)</span> is the vaccination
-coverage and <span class="math inline">\(e\)</span> is the vaccine
-efficacy, both of <span class="math inline">\(p\)</span> and <span class="math inline">\(e\)</span> being functions of age:</p>
-<ul>
-<li><span class="math inline">\(p = 0\)</span> for age &lt; 9
-months</li>
-<li><span class="math inline">\(p = p_2\)</span> for age &gt; 9
-months</li>
-<li><span class="math inline">\(e = e_1\)</span> for age &lt; 18
-months</li>
-<li><span class="math inline">\(e = e_2\)</span> for age &gt; 18
-months</li>
-</ul>
-<p>Thus, we have 2 equations with 3 unknown:</p>
-<ul>
-<li>for 9 &lt; age &lt; 18 months:</li>
-</ul>
-<p><span class="math display">\[
-\frac{1 - e_1}{1 - p_2}p_2 = P_1
-\]</span></p>
-<ul>
-<li>for age &gt; 18 months:</li>
-</ul>
-<p><span class="math display">\[
-\frac{1 - e_2}{1 - p_2}p_2 = P_2
-\]</span></p>
-<p>If we further assume that</p>
-<ul>
-<li><p>the vaccine efficacies are independent of the fact that children
-have chronic disease of not;</p></li>
-<li><p>the prevalence of chronic disease is independent of age</p></li>
-</ul>
-<p>Then we have 2 additional equations for one additional parameter,
-<span class="math inline">\(p_2&#39;\)</span>, the vaccine coverage
-among children with chronic diseases:</p>
-<ul>
-<li>for 9 &lt; age &lt; 18 months:</li>
-</ul>
-<p><span class="math display">\[
-\frac{1 - e_1}{1 - p_2&#39;}p_2&#39; = P_1&#39;
-\]</span></p>
-<ul>
-<li>for age &gt; 18 months:</li>
-</ul>
-<p><span class="math display">\[
-\frac{1 - e_2}{1 - p_2&#39;}p_2&#39; = P_2&#39;
-\]</span></p>
+<p>Where <span class="math inline">\(p_1\)</span> and <span class="math inline">\(p_2\)</span> are the vaccine coverages of children
+without and with chronic disease respectively and <span class="math inline">\(e_1\)</span> and <span class="math inline">\(e_2\)</span> are the vaccine efficiencies after
+the first and second doses respectively. We can estimate the parameters
+<span class="math inline">\(p_1\)</span>, <span class="math inline">\(p_2\)</span>, <span class="math inline">\(e_1\)</span>, <span class="math inline">\(e_2\)</span> by maximum likelihood, using a
+binomial distribution of errors. Let’s look at the implementation in R
+with the package <code>bbmle</code>:</p>
+<pre class="r"><code>library(bbmle)</code></pre>
+<pre><code>## Loading required package: stats4</code></pre>
+<p>First we need 2 functions to transform the parameter values in order
+to order to constraint the parameters between 0 and 1. The first
+function is the logit function:</p>
+<pre class="r"><code>logit &lt;- function(x) {
+  log(x / (1 - x))
+}</code></pre>
+<p>And the second function is the inverse logit function:</p>
+<pre class="r"><code>inverse_logit &lt;- function(x) {
+  exp(x)/ (1 + exp(x))
+}</code></pre>
+<p>The we need a function that computes the minus log-likelihood as a
+function of the parameters values and for some given values of the data
+V1, V2, V3, V4 (the numerators of P1, P2, P3 and P4 respectively), and
+N1, N2, N3 and N4 (the denominators of P1, P2, P3 and P4
+respectively):</p>
+<pre class="r"><code>mLL &lt;- function(p1, p2, e1, e2) {
+  p1 &lt;- inverse_logit(p1)
+  p2 &lt;- inverse_logit(p2)
+  e1 &lt;- inverse_logit(e1)
+  e2 &lt;- inverse_logit(e2)
+  - sum(dbinom(c(V1, V2, V3, V4), c(N1, N2, N3, N4),
+               c(((1 - e1) * p1) / ((1 - p1) + (1 - e1) * p1),
+                 ((1 - e2) * p1) / ((1 - p1) + (1 - e2) * p1),
+                 ((1 - e1) * p2) / ((1 - p2) + (1 - e1) * p2),
+                 ((1 - e2) * p2) / ((1 - p2) + (1 - e2) * p2)), TRUE))
+}</code></pre>
+<p>From here, let’s define the function that puts initial values of the
+parameters and data together and does the maximum likelihood
+estimation:</p>
+<pre class="r"><code>mlestimation &lt;- function(p1, p2, e1, e2, N1, N2, N3, N4, V1, V2, V3, V4, ...) {
+  mle2(mLL, as.list(logit(c(p1 = p1, p2 = p2, e1 = e1, e2 = e2))),
+       data = list(N1 = N1, N2 = N2, N3 = N3, N4 = N4, V1 = V1, V2 = V2, V3 = V3, V4 = V4), ...)
+}</code></pre>
+<p>Let’s try it:</p>
+<pre class="r"><code>out &lt;- mlestimation(.5, .5, .9, .9, 526, 356, 119, 126, 57, 121, 8, 12)</code></pre>
+<p>Which gives the following estimates:</p>
+<pre class="r"><code>inverse_logit(coef(out))</code></pre>
+<pre><code>##        p1        p2        e1        e2 
+## 0.7297283 0.4383690 0.9517042 0.8179414</code></pre>
+<p>Suggesting that the vaccine coverage for children without chronic
+diseases would be around 73% and that the vaccine coverage of children
+with chronic diseases would be around 44% in comparison. It also
+strangely suggest that the vaccine efficiency after the first dose (95%)
+would be higher than after the second dose (82%). Let’s see the
+confidence intervals:</p>
+<pre class="r"><code>confint(out)</code></pre>
+<pre><code>## Warning in proffun(fitted, ...): stepsize effectively zero/flat profile (p1)
+
+## Warning in proffun(fitted, ...): stepsize effectively zero/flat profile (p1)</code></pre>
+<pre><code>## Warning in mle2(minuslogl = function (p1, p2, e1, e2) : convergence failure:
+## code=1 (iteration limit &#39;maxit&#39; reached)</code></pre>
+<pre><code>## Warning in proffun(fitted, ...): stepsize effectively zero/flat profile (p2)</code></pre>
+<pre><code>## Warning in mle2(minuslogl = function (p1, p2, e1, e2) : convergence failure:
+## code=1 (iteration limit &#39;maxit&#39; reached)</code></pre>
+<pre><code>## Warning in proffun(fitted, ...): stepsize effectively zero/flat profile (e1)</code></pre>
+<pre><code>## Warning in proffun(fitted, ...): stepsize effectively zero/flat profile (e2)
+
+## Warning in proffun(fitted, ...): stepsize effectively zero/flat profile (e2)</code></pre>
+<pre><code>## Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):
+## collapsing to unique &#39;x&#39; values</code></pre>
+<pre><code>## Warning in .local(object, parm, level, ...): non-monotonic profile (p2):
+## reverting from spline to linear approximation (consider running &#39;profile&#39; with
+## manually reduced std.err)</code></pre>
+<pre><code>## Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):
+## collapsing to unique &#39;x&#39; values</code></pre>
+<pre><code>## Warning in .local(object, parm, level, ...): non-monotonic profile (e1):
+## reverting from spline to linear approximation (consider running &#39;profile&#39; with
+## manually reduced std.err)</code></pre>
+<pre><code>## Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):
+## collapsing to unique &#39;x&#39; values
+
+## Warning in regularize.values(x, y, ties, missing(ties), na.rm = na.rm):
+## collapsing to unique &#39;x&#39; values</code></pre>
+<pre><code>##         2.5 % 97.5 %
+## p1         NA     NA
+## p2 -2.4514058     NA
+## e1  0.5413379     NA
+## e2         NA     NA</code></pre>
 
 
 
