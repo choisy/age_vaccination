@@ -125,21 +125,69 @@ out <- mlestimation(.5, .5, .9, .9, 526, 356, 119, 126, 57, 121, 8, 12)
 Which gives the following estimates:
 
 ```{r}
-inverse_logit(coef(out))
+inverse_logit(cbind(coef(out), confint(out, method = "quad")))
 ```
 
 Suggesting that the vaccine coverage for children without chronic diseases would
 be around 73% and that the vaccine coverage of children with chronic diseases
-would be around 44% in comparison. It also strangely suggest that the vaccine
+would be around 44% in comparison. It also strangely suggests that the vaccine
 efficiency after the first dose (95%) would be higher than after the second dose
-(82%). Let's see the confidence intervals:
+(82%). Let's try an alternative parameterisation that would assume that forces
+the vaccine efficacy after 1 dose only to be lower than the vaccine efficacy
+after 2 doses:
+
+$$
+P_1 = \frac{(1 - \varepsilon e_2) p_1}{(1 - p_1) + (1 - \varepsilon e_2) p_1}
+$$
+$$
+P_2 = \frac{(1 - e_2) p_1}{(1 - p_1) + (1 - e_2) p_1}
+$$
+$$
+P_3 = \frac{(1 - \varepsilon e_2) p_2}{(1 - p_2) + (1 - \varepsilon e_2) p_2}
+$$
+$$
+P_4 = \frac{(1 - e_2) p_2}{(1 - p_2) + (1 - e_2) p_2}
+$$
 
 ```{r}
-inverse_logit(confint(out, method = "quad"))
+mLL2 <- function(p1, p2, eps, e2) {
+  p1 <- inverse_logit(p1)
+  p2 <- inverse_logit(p2)
+  eps <- inverse_logit(eps)
+  e2 <- inverse_logit(e2)
+  - sum(dbinom(c(V1, V2, V3, V4), c(N1, N2, N3, N4),
+               c(((1 - eps * e2) * p1) / ((1 - p1) + (1 - eps * e2) * p1),
+                 ((1 - e2) * p1) / ((1 - p1) + (1 - e2) * p1),
+                 ((1 - eps * e2) * p2) / ((1 - p2) + (1 - eps * e2) * p2),
+                 ((1 - e2) * p2) / ((1 - p2) + (1 - e2) * p2)), TRUE))
+}
 ```
 
-Let's try an alternative parameterisation that would assume vaccine coverage
-changing with time:
+```{r}
+mlestimation2 <- function(p1, p2, eps, e2, N1, N2, N3, N4, V1, V2, V3, V4, ...) {
+  mle2(mLL2, as.list(logit(c(p1 = p1, p2 = p2, eps = eps, e2 = e2))),
+       data = list(N1 = N1, N2 = N2, N3 = N3, N4 = N4, V1 = V1, V2 = V2, V3 = V3, V4 = V4), ...)
+}
+```
+
+```{r}
+out2 <- mlestimation2(.5, .5, .99, .9, 526, 356, 119, 126, 57, 121, 8, 12)
+```
+
+```{r}
+inverse_logit(cbind(coef(out2), confint(out2, method = "quad")))
+```
+
+Not conclusive. Plus: the likelihood of the first model is much higher:
+
+```{r}
+logLik(out)
+logLik(out2)
+```
+
+
+* vaccine coverage changing with time (epsilon)
+* vaccine efficacy depends on whether the patient has chronic disease or not
 
 $$
 P_1 = \frac{(1 - e_1) p_1}{(1 - p_1) + (1 - e_1) p_1}
@@ -153,3 +201,17 @@ $$
 $$
 P_4 = \frac{(1 - e_2) \varepsilon p_2}{(1 - \varepsilon p_2) + (1 - e_2) \varepsilon p_2}
 $$
+
+```{r}
+mLL2 <- function(p1, p2, e1, e2) {
+  p1 <- inverse_logit(p1)
+  p2 <- inverse_logit(p2)
+  e1 <- inverse_logit(e1)
+  e2 <- inverse_logit(e2)
+  - sum(dbinom(c(V1, V2, V3, V4), c(N1, N2, N3, N4),
+               c(((1 - e1) * p1) / ((1 - p1) + (1 - e1) * p1),
+                 ((1 - e1) * eps * p1) / ((1 - p1) + (1 - e1) * p1),
+                 ((1 - e2) * p2) / ((1 - p2) + (1 - e2) * p2),
+                 ((1 - e2) * p2) / ((1 - p2) + (1 - e2) * p2)), TRUE))
+}
+```
