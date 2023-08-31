@@ -102,8 +102,20 @@ $$
 
 Where $p_1$ and $p_2$ are the vaccine coverages of children without and with
 chronic disease respectively and $e_1$ and $e_2$ are the vaccine efficacies
-after the first and second doses respectively. By observing the number of
-children vaccinated in the 4 population strata as follows
+after the first and second doses respectively. The problem however is that with
+4 equations and 4 unknown, we are left with zero degree of freedom to estimate
+the parameters $p_1$, $p_2$, $e_1$ and $e_2$. We will try to go around that
+difficulty by bootstrapping the data. For each bootstrapped data set we will
+have the following two tables:
+
+```{r, eval = FALSE}
+             | 9 < age < 18 | 18 < age
+-------------|--------------|---------
+non-chronic  |      N1      |    N2
+chronic dis. |      N3      |    N4
+```
+
+for the number of measles cases in each strata and
 
 ```{r, eval = FALSE}
              | 9 < age < 18 | 18 < age
@@ -112,13 +124,16 @@ non-chronic  |      V1      |    V2
 chronic dis. |      V3      |    V4
 ```
 
-By further assuming that the number of vaccinated children follows a Bernoulli
-process, then we can estimate of the we can express the following likelihood:
+for the number of vaccinated in each strata. By further assuming that the number
+of vaccinated children follows a Bernoulli process, then we can express the
+following likelihood:
 
 $$
-\mbox{L}(p_1, p_2, e_1, e_2 | N_1, N_2, N_3, N_4, V_1, V_2, V_3, V_4) = \prod_{i = 1}^4 \frac{N_i!}{V_i!(N_i - V_i)!}P_i^{N_i}(1 - P_i)^{N_i - V_i}
+\mbox{L}(p_1, p_2, e_1, e_2 | N, V) = \prod_{j = 1}^k\prod_{i = 1}^4 \frac{N_{i,k}!}{V_{i,k}!(N_{i,k} - V_{i,k})!}P_{i,k}^{N_{i,k}}(1 - P_{i,k})^{N_{i,k} - V_{i,k}}
 $$
 
+where $i$ refers to the index in the two tables above and $k$ is the number of
+bootstrapped data sets.
 
 ## Implementation in R
 
