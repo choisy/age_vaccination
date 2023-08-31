@@ -9,10 +9,16 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## General framework
+
 Let's make the following assumptions:
 
-* the age distribution for the children of age considered in this study is flat;
-* the exposure to measles is independent of age;
+* the age distribution for the children of age considered in this study is flat
+(i.e. same number of children per age class). This is a fair assumption when the
+considerd age range is not big (children only) and when the birth rate does not
+change dramatically from year to year;
+* the exposure to measles is independent of age and the status regarding the
+presence of chronic diseases;
 * the susceptibility is determined by vaccination only;
 * the prevalence of chronic disease is independent of age;
 * the vaccine efficacies are independent of the fact that children have chronic
@@ -28,14 +34,31 @@ $$
 where $M$ is the total number of measles cases, $p$ is the vaccine coverage,
 $e$ is the vaccine efficacy and $N$ is the total number of children in the
 population. From this equation, we can derive the proportion of children that
-are vaccined amond the measles cases:
+are vaccinated among the measles cases (since our data are only measles cases):
 
 $$
 P = \frac{(1 - e) p}{(1 - p) + (1 - e) p}
 $$
 
-Let's now consider the proportions of children that are vaccinated in the 4
-categories of children as below:
+## Estimating vaccine coverage and efficacy by considering population strata
+
+The weakness of our data is that it contains only measles cases, as we
+unfortunately do not have any data that informs us about the denominator.
+Fortunately though, we have information on whether children have chronic disease
+or not. Furthermore, measles vaccination in the public sector is given in two
+shots at 9 and 18 months of age. We can use the presence of chronic disease and
+age to stratified the population of measles cases into 4 sub-populations as
+below:
+
+```{r, eval = FALSE}
+             | 9 < age < 18 | 18 < age
+-------------|--------------|---------
+non-chronic  |      N1      |    N2
+chronic dis. |      N3      |    N4
+```
+
+where $N = N_1 + N_2 + N_3 + N_4$. For each of these 4 population strata we can
+express the expected proportions of children that are vaccinated:
 
 ```{r, eval = FALSE}
              | 9 < age < 18 | 18 < age
@@ -44,7 +67,25 @@ non-chronic  |      P1      |    P2
 chronic dis. |      P3      |    P4
 ```
 
-Then we have 4 equations with 4 unknown:
+as a function of 4 parameters $p_1$, $p_2$, $e_1$, $e_2$ as follows:
+
+```{r, eval = FALSE}
+             | 9 < age < 18 | 18 < age
+-------------|--------------|---------
+non-chronic  |      p1      |    p1
+chronic dis. |      p2      |    p2
+```
+
+and 
+
+```{r, eval = FALSE}
+             | 9 < age < 18 | 18 < age
+-------------|--------------|---------
+non-chronic  |      e1      |    e2
+chronic dis. |      e1      |    e2
+```
+
+Leading to 4 equations with 4 unknown:
 
 $$
 P_1 = \frac{(1 - e_1) p_1}{(1 - p_1) + (1 - e_1) p_1}
@@ -60,10 +101,28 @@ P_4 = \frac{(1 - e_2) p_2}{(1 - p_2) + (1 - e_2) p_2}
 $$
 
 Where $p_1$ and $p_2$ are the vaccine coverages of children without and with
-chronic disease respectively and $e_1$ and $e_2$ are the vaccine efficiencies
-after the first and second doses respectively. We can estimate the parameters
-$p_1$, $p_2$, $e_1$, $e_2$ by maximum likelihood, using a binomial distribution
-of errors. Let's look at the implementation in R with the package `bbmle`:
+chronic disease respectively and $e_1$ and $e_2$ are the vaccine efficacies
+after the first and second doses respectively. By observing the number of
+children vaccinated in the 4 population strata as follows
+
+```{r, eval = FALSE}
+             | 9 < age < 18 | 18 < age
+-------------|--------------|---------
+non-chronic  |      V1      |    V2
+chronic dis. |      V3      |    V4
+```
+
+By further assuming that the number of vaccinated children follows a Bernoulli
+process, then we can estimate of the we can express the following likelihood:
+
+$$
+\mbox{L}(p_1, p_2, e_1, e_2 | N_1, N_2, N_3, N_4, V_1, V_2, V_3, V_4) = \prod_{i = 1}^4 \frac{N_i!}{V_i!(N_i - V_i)!}P_i^{N_i}(1 - P_i)^{N_i - V_i}
+$$
+
+
+## Implementation in R
+
+Let's look at the implementation in R with the package `bbmle`:
 
 ```{r}
 library(bbmle)
@@ -71,7 +130,8 @@ library(bbmle)
 
 First we need 2 functions to transform the parameter values in order to order
 to constraint the parameters between 0 and 1. The first function is the logit
-function:
+function that tranforms a number between 0 and 1 into a number between $-\infty$
+and $+\infty$:
 
 ```{r}
 logit <- function(x) {
@@ -79,7 +139,8 @@ logit <- function(x) {
 }
 ```
 
-And the second function is the inverse logit function:
+And the second function is the inverse logit function that transforms a number
+between $-\infty$ and $+\infty$ into a number between 0 and 1:
 
 ```{r}
 inverse_logit <- function(x) {
@@ -87,22 +148,24 @@ inverse_logit <- function(x) {
 }
 ```
 
-The we need a function that computes the minus log-likelihood as a function of
-the parameters values and for some given values of the data V1, V2, V3, V4 (the
-numerators of P1, P2, P3 and P4 respectively), and N1, N2, N3 and N4 (the
-denominators of P1, P2, P3 and P4 respectively):
+Then we need a function that computes the minus log-likelihood value as a
+function of the parameters values and for some given values of the data V1, V2,
+V3, V4, N1, N2, N3 and N4. But first we need a function that computes $P$ as a
+function of $p$ and $e$ values:
+
+```{r}
+prop_vacc <- function(p, e) {
+  (1 - e) * p / ((1 - p) + (1 - e) * p)
+}
+```
+
+And now the function that computes the minus log-likelihood values:
 
 ```{r}
 mLL <- function(p1, p2, e1, e2) {
-  p1 <- inverse_logit(p1)
-  p2 <- inverse_logit(p2)
-  e1 <- inverse_logit(e1)
-  e2 <- inverse_logit(e2)
-  - sum(dbinom(c(V1, V2, V3, V4), c(N1, N2, N3, N4),
-               c(((1 - e1) * p1) / ((1 - p1) + (1 - e1) * p1),
-                 ((1 - e2) * p1) / ((1 - p1) + (1 - e2) * p1),
-                 ((1 - e1) * p2) / ((1 - p2) + (1 - e1) * p2),
-                 ((1 - e2) * p2) / ((1 - p2) + (1 - e2) * p2)), TRUE))
+  with(lapply(as.list(match.call())[-1], inverse_logit),
+       - sum(dbinom(c(V1, V2, V3, V4), c(N1, N2, N3, N4),
+                    prop_vacc(c(p1, p1, p2, p2), c(e1, e2, e1, e2)), TRUE)))
 }
 ```
 
@@ -119,7 +182,7 @@ mlestimation <- function(p1, p2, e1, e2, N1, N2, N3, N4, V1, V2, V3, V4, ...) {
 Let's try it:
 
 ```{r}
-out <- mlestimation(.5, .5, .9, .9, 526, 356, 119, 126, 57, 121, 8, 12)
+out <- mlestimation(.5, .5, .95, .95, 526, 356, 119, 126, 57, 121, 8, 12)
 ```
 
 Which gives the following estimates:
@@ -132,7 +195,94 @@ Suggesting that the vaccine coverage for children without chronic diseases would
 be around 73% and that the vaccine coverage of children with chronic diseases
 would be around 44% in comparison. It also strangely suggests that the vaccine
 efficiency after the first dose (95%) would be higher than after the second dose
-(82%). Let's try an alternative parameterisation that would assume that forces
+(82%). However, let's compare the methods:
+
+```{r}
+out <- mlestimation(.5, .5, .5, .5, 526, 356, 119, 126, 57, 121, 8, 12)
+inverse_logit(cbind(coef(out), confint(out, method = "quad")))
+
+out <- mlestimation(.5, .5, .5, .5, 526, 356, 119, 126, 57, 121, 8, 12, method = "BFGS")
+inverse_logit(cbind(coef(out), confint(out, method = "quad")))
+
+out <- mlestimation(.5, .5, .5, .5, 526, 356, 119, 126, 57, 121, 8, 12, method = "CG")
+inverse_logit(cbind(coef(out), confint(out, method = "quad")))
+
+out <- mlestimation(.5, .5, .5, .5, 526, 356, 119, 126, 57, 121, 8, 12, method = "SANN")
+inverse_logit(cbind(coef(out), confint(out, method = "quad")))
+```
+
+Let's try various starting values:
+
+```{r}
+start_vals <- unname(lapply(do.call(expand.grid,
+                                    lapply(1:4, function(x) c(.1, .3, .5, .7, .9))), I))
+
+outputs <- purrr::pmap(start_vals, mlestimation, N1 = 526, N2 = 356, N3 = 119,
+                       N4 = 126, V1 = 57, V2 = 121, V3 = 8, V4 = 12)
+
+estimates <- inverse_logit(t(sapply(outputs, coef)))
+```
+
+```{r}
+pairs(estimates)
+```
+
+## Exploring hypotheses explaining these estimates
+
+If a proportion $q$ of children get vaccinated in the private clinics instead
+of the public ones and thus get a first vaccine shot at 12 months instead of 9
+months, then the number of children between 9 and 18 months that are vaccinated
+would be:
+
+```{r, eval = FALSE}
+             | 9 < age < 18   |   18 < age
+-------------|----------------|-------------
+non-chronic  | (1 - q / 3) V1 |     V2 
+chronic dis. | (1 - q / 3) V3 |     V4 
+```
+
+It's as if we had implicitly assumed until now that $q = 0$. Let's explore the
+effect of $q$ on the estimates of $p_1$, $p_2$, $e_1$, $e_2$. The way to do is
+to run simulations from known values of $p_1$, $p_2$, $e_1$, $e_2$ and for
+various values of $q$ and then, for each value of $q$ estimate $p_1$, $p_2$,
+$e_1$, $e_2$ by maximum likelihood as before and compare the estimates with the
+true values. So, first we need a simulator:
+
+```{r}
+sim_vacc <- function(p, e, N, q = 0, size = 1) {
+  rbinom(size, N, (1 - q / 3) * prop_vacc(p, e))
+}
+```
+
+```{r}
+p_true <- .75
+e_true <- .95
+N_vals <- c(526, 356, 119, 126)
+V_vals <- sapply(N_vals, sim_vacc, p = p_true, e = e_true, q = 0, size = 1)
+
+out_sim <- do.call(mlestimation,
+                   c(list(p1 = .5, p2 = .5, e1 = .5, e2 = .5),
+                     as.list(setNames(N_vals, c("N1", "N2", "N3", "N4"))),
+                     as.list(setNames(V_vals, c("V1", "V2", "V3", "V4")))))
+
+inverse_logit(cbind(coef(out_sim), confint(out_sim, method = "quad")))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Considering alternative parameterizations
+
+Let's try an alternative parameterisation that would assume that forces
 the vaccine efficacy after 1 dose only to be lower than the vaccine efficacy
 after 2 doses:
 
