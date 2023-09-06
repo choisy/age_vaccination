@@ -177,6 +177,20 @@ prop_vacc <- function(p, e) {
 And now the function that computes the minus log-likelihood values:
 
 ```{r}
+# vaccinated, chronic, older
+
+```
+
+
+```{r}
+mLL <- function(p1, p2, e1, e2) {
+  with(lapply(as.list(match.call())[-1], inverse_logit),
+       - sum(dbinom(c(V1, V2, V3, V4), c(N1, N2, N3, N4),
+                    prop_vacc(c(p1, p1, p2, p2), c(e1, e2, e1, e2)), TRUE)))
+}
+```
+
+```{r}
 mLL <- function(p1, p2, e1, e2) {
   with(lapply(as.list(match.call())[-1], inverse_logit),
        - sum(dbinom(c(V1, V2, V3, V4), c(N1, N2, N3, N4),
